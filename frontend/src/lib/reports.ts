@@ -362,6 +362,10 @@ export interface ReportResult {
   columns?: string[];
   error?: string;
   row_count?: number;
+  total?: number;
+  total_outstanding?: number;
+  count?: number;
+  summary?: unknown;
   schema?: Record<string, { name: string; type: string }[]>;
 }
 
