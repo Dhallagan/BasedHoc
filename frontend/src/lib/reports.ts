@@ -365,7 +365,7 @@ export interface ReportResult {
   total?: number;
   total_outstanding?: number;
   count?: number;
-  summary?: unknown;
+  summary?: Record<string, number>;
   schema?: Record<string, { name: string; type: string }[]>;
 }
 
