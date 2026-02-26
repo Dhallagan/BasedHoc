@@ -21,16 +21,19 @@ function extractReportSources(report: ReportDefinition): string[] {
   if (!sqlParam || typeof sqlParam.default !== 'string') return [];
 
   const sql = sqlParam.default;
-  const matches = sql.matchAll(/\b(?:from|join)\s+([A-Za-z0-9_."`]+)/gi);
+  const pattern = /\b(?:from|join)\s+([A-Za-z0-9_."`]+)/gi;
   const sources = new Set<string>();
 
-  for (const match of matches) {
+  let match = pattern.exec(sql);
+  while (match) {
     const raw = (match[1] || '').trim();
-    if (!raw) continue;
-    const normalized = raw.replace(/[`"]/g, '').replace(/,+$/, '');
-    if (normalized) {
-      sources.add(normalized);
+    if (raw) {
+      const normalized = raw.replace(/[`"]/g, '').replace(/,+$/, '');
+      if (normalized) {
+        sources.add(normalized);
+      }
     }
+    match = pattern.exec(sql);
   }
 
   return Array.from(sources);
