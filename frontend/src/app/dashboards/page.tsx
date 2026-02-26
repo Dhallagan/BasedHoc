@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CATEGORY_LABELS, REPORTS, ReportDefinition, ReportResult, executeReport } from '@/lib/reports';
 import ReportDashboardCard from '@/components/ReportDashboardCard';
+import Toolbar from '@/components/Toolbar';
 
 interface DashboardState {
   isLoading: boolean;
@@ -70,18 +71,13 @@ export default function DashboardsPage() {
 
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <header className="bg-surface-elevated border-b border-border px-6 py-4 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 -ml-2 rounded-lg hover:bg-surface-tertiary transition-colors">
-              <svg className="w-5 h-5 text-content-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-content-primary">Dashboards</h1>
-              <p className="text-sm text-content-tertiary">Live React dashboards for each report, grouped by department.</p>
-            </div>
+      <Toolbar />
+
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+        <section className="bg-surface-elevated border border-border rounded-lg p-5 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-content-primary">Dashboards</h1>
+            <p className="text-sm text-content-tertiary">Live React dashboards for each report, grouped by department.</p>
           </div>
           <Link
             href="/reports"
@@ -89,10 +85,8 @@ export default function DashboardsPage() {
           >
             Open Report Catalog
           </Link>
-        </div>
-      </header>
+        </section>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
         {CATEGORY_ORDER.map((category) => {
           const categoryReports = reports.filter((report) => report.category === category);
           if (categoryReports.length === 0) return null;

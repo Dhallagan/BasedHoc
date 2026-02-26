@@ -24,7 +24,16 @@ export default function Toolbar() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3.75h7.5L18.75 8.25v12a.75.75 0 01-.75.75h-11.25A.75.75 0 016 20.25V4.5a.75.75 0 01.75-.75zM14.25 3.75v4.5h4.5" />
               </svg>
-              Docs
+              About
+            </Link>
+            <Link
+              href="/docs/data-governance"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-content-secondary hover:text-content-primary hover:bg-surface-tertiary transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5h15v15h-15v-15zm3 4.5h9m-9 3h9m-9 3h6" />
+              </svg>
+              Glossary
             </Link>
             <Link
               href="/dashboards"
@@ -34,15 +43,6 @@ export default function Toolbar() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75h7.5v7.5h-7.5v-7.5zm9 0h7.5v12h-7.5v-12zm-9 9h7.5v7.5h-7.5v-7.5zm9 4.5h7.5v3h-7.5v-3z" />
               </svg>
               Dashboards
-            </Link>
-            <Link
-              href="/reports"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-content-secondary hover:text-content-primary hover:bg-surface-tertiary transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-              </svg>
-              Reports
             </Link>
           </nav>
         </div>

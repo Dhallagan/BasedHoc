@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { REPORTS, CATEGORY_LABELS, getReportsByCategory } from '@/lib/reports';
+import Toolbar from '@/components/Toolbar';
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   executive: (
@@ -72,37 +73,20 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-surface-primary">
-      {/* Header */}
-      <header className="bg-surface-elevated border-b border-border px-6 py-4 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="p-2 -ml-2 rounded-lg hover:bg-surface-tertiary transition-colors"
-            >
-              <svg className="w-5 h-5 text-content-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-content-primary">Reports</h1>
-              <p className="text-sm text-content-tertiary">Run curated MotherDuck business reports or edit SQL directly.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-content-tertiary bg-surface-tertiary px-2 py-1 rounded">
-              {Object.keys(REPORTS).length} reports
-            </span>
-            <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-success" />
-              <span className="text-xs text-content-tertiary">Connected</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Toolbar />
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-10">
+        <section className="bg-surface-elevated border border-border rounded-lg p-5 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-content-primary">Reports</h1>
+            <p className="text-sm text-content-tertiary">Run curated MotherDuck business reports or edit SQL directly.</p>
+          </div>
+          <span className="text-xs text-content-tertiary bg-surface-tertiary px-2 py-1 rounded">
+            {Object.keys(REPORTS).length} reports
+          </span>
+        </section>
+
         {Object.keys(REPORTS).length === 0 && (
           <section className="rounded-lg border border-dashed border-border bg-surface-elevated p-8 text-center">
             <h2 className="text-base font-semibold text-content-primary">No reports configured</h2>

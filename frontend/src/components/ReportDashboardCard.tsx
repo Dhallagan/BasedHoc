@@ -16,6 +16,26 @@ interface ReportDashboardCardProps {
   showOpenLink?: boolean;
 }
 
+function extractReportSources(report: ReportDefinition): string[] {
+  const sqlParam = report.parameters.find((param) => param.name === 'sql');
+  if (!sqlParam || typeof sqlParam.default !== 'string') return [];
+
+  const sql = sqlParam.default;
+  const matches = sql.matchAll(/\b(?:from|join)\s+([A-Za-z0-9_."`]+)/gi);
+  const sources = new Set<string>();
+
+  for (const match of matches) {
+    const raw = (match[1] || '').trim();
+    if (!raw) continue;
+    const normalized = raw.replace(/[`"]/g, '').replace(/,+$/, '');
+    if (normalized) {
+      sources.add(normalized);
+    }
+  }
+
+  return Array.from(sources);
+}
+
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return '-';
   if (typeof value === 'number') {
@@ -41,6 +61,7 @@ export default function ReportDashboardCard({
   onRefresh,
   showOpenLink = true,
 }: ReportDashboardCardProps) {
+  const sources = extractReportSources(report);
   const rows = state.result?.data || [];
   const columns = state.result?.columns || (rows[0] ? Object.keys(rows[0]) : []);
   const previewRows = rows.slice(0, 8);
@@ -60,6 +81,11 @@ export default function ReportDashboardCard({
         <div>
           <h3 className="text-sm font-semibold text-content-primary">{report.name}</h3>
           <p className="text-xs text-content-tertiary mt-0.5">{report.description}</p>
+          {sources.length > 0 && (
+            <p className="text-[11px] text-content-tertiary mt-1">
+              Source: <span className="font-mono">{sources.join(', ')}</span>
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {showOpenLink && (

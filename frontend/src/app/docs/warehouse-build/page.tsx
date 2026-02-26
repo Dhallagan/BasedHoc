@@ -1,35 +1,21 @@
 'use client';
 
 import Link from 'next/link';
+import Toolbar from '@/components/Toolbar';
 
 export default function WarehouseBuildDocPage() {
   return (
     <div className="min-h-screen bg-surface-secondary">
-      <header className="bg-surface-elevated border-b border-border px-6 py-4 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 -ml-2 rounded-lg hover:bg-surface-tertiary transition-colors">
-              <svg className="w-5 h-5 text-content-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-content-primary">Warehouse Build Playbook</h1>
-              <p className="text-sm text-content-tertiary">
-                Browserbase-style source system to MotherDuck warehouse and self-serve reporting app.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/dashboards"
-            className="px-3 py-1.5 rounded-lg text-sm bg-surface-tertiary hover:bg-surface-primary text-content-primary"
-          >
-            Open Dashboards
-          </Link>
-        </div>
-      </header>
+      <Toolbar />
 
       <main className="max-w-5xl mx-auto px-6 py-8 text-sm text-content-primary leading-6">
+        <section className="bg-surface-elevated border border-border rounded-lg p-5 mb-4">
+          <h1 className="text-lg font-semibold text-content-primary">Warehouse Build Playbook</h1>
+          <p className="text-sm text-content-secondary mt-1">
+            Browserbase-style source system to MotherDuck warehouse and self-serve reporting app.
+          </p>
+        </section>
+
         <section className="bg-surface-elevated border border-border rounded-lg p-6 space-y-6">
           <div>
             <h2 className="text-lg font-semibold">System Overview</h2>
@@ -37,6 +23,34 @@ export default function WarehouseBuildDocPage() {
               I built this to solve a simple problem: teams move fast, but data trust usually lags behind. The point of this system
               is to turn messy operational activity into metrics people can actually rely on, without creating a reporting bottleneck.
             </p>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold">Architecture Diagram</h3>
+            <p className="mt-2 text-content-secondary">
+              End-to-end flow from source capture to self-serve analytics consumption:
+            </p>
+            <pre className="mt-2 p-3 rounded bg-surface-primary border border-border text-xs overflow-auto text-content-secondary">
+{`Supabase-like Operational DB
+  (organizations, users, sessions, billing)
+                |
+                v
+Replication Layer
+  (source-aligned ingestion)
+                |
+                v
+MotherDuck Warehouse
+  bronze_supabase  -> raw copy
+  silver_stg       -> cleaned staging
+  silver_core      -> canonical entities/facts
+  gold_marts       -> domain aggregates
+  gold_metrics     -> KPI views
+                |
+                v
+BasedHoc Self-Serve Portal
+  Dashboards (department KPIs)
+  Reports (run/edit/export SQL)`}
+            </pre>
           </div>
 
           <div>
@@ -107,6 +121,9 @@ export default function WarehouseBuildDocPage() {
           </div>
 
           <div className="pt-1 flex flex-wrap gap-2">
+            <Link href="/docs/data-governance" className="px-3 py-1.5 rounded bg-surface-tertiary text-content-primary text-xs hover:bg-surface-primary">
+              Data Governance Glossary
+            </Link>
             <Link href="/dashboards" className="px-3 py-1.5 rounded bg-accent text-white text-xs hover:bg-accent-hover">
               View Dashboards
             </Link>

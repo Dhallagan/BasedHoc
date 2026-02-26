@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { REPORTS, executeReport, validateParams, ReportResult } from '@/lib/reports';
 import EmbeddedSpreadsheet from '@/components/EmbeddedSpreadsheet';
 import ReportDashboardCard from '@/components/ReportDashboardCard';
+import Toolbar from '@/components/Toolbar';
 import { exportToExcel } from '@/lib/excelExport';
 
 export default function ReportPage() {
@@ -264,10 +265,13 @@ export default function ReportPage() {
 
   if (!report) {
     return (
-      <div className="h-screen bg-surface-primary flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-xl font-semibold text-content-primary mb-2">Report Not Found</h1>
-          <Link href="/reports" className="text-accent hover:underline">Back to Reports</Link>
+      <div className="min-h-screen bg-surface-primary">
+        <Toolbar />
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-content-primary mb-2">Report Not Found</h1>
+            <Link href="/reports" className="text-accent hover:underline">Back to Reports</Link>
+          </div>
         </div>
       </div>
     );
@@ -287,7 +291,8 @@ export default function ReportPage() {
     const tieSpreadsheetData = toSpreadsheetData(tieResult);
 
     return (
-      <div className="h-screen flex flex-col bg-surface-secondary">
+      <div className="min-h-screen flex flex-col bg-surface-secondary">
+        <Toolbar />
         <header className="bg-surface-elevated border-b border-border px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <Link href="/reports" className="p-1.5 rounded hover:bg-surface-tertiary transition-colors">
@@ -487,7 +492,8 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-surface-secondary">
+    <div className="min-h-screen flex flex-col bg-surface-secondary">
+      <Toolbar />
       {/* Header with Title & Subtitle */}
       <header className="bg-surface-elevated border-b border-border px-4 py-3 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
