@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { ReportDefinition, ReportResult } from '@/lib/reports';
+import MetricHelpButton from '@/components/MetricHelpButton';
+import { MetricContract, getMetricContract } from '@/lib/metricGlossary';
 
 interface DashboardState {
   isLoading: boolean;
@@ -78,6 +80,34 @@ export default function ReportDashboardCard({
       .slice(0, 3);
   })();
 
+  const reportContract: MetricContract = getMetricContract(`report.${report.id}`) || {
+    key: `report.${report.id}`,
+    title: report.name,
+    domain: 'shared',
+    kind: 'metric',
+    definition: report.description,
+    formula: 'Defined by report SQL in the report catalog.',
+    grain: 'Report query output grain',
+    sourceOfTruth: sources.length > 0 ? sources : ['See report SQL'],
+    owner: 'Domain owner (to be assigned)',
+    approver: 'Data Platform',
+    onCall: '#data-platform-oncall',
+    instrumentation: 'Contract placeholder: add explicit metric formula and owner.',
+    status: 'draft',
+    certification: 'provisional',
+    hasTests: false,
+    sla: 'TBD',
+    freshnessSlo: 'TBD',
+    dataQualitySlo: 'TBD',
+    testPassRate: 'TBD',
+    lineage: 'Defined in report SQL',
+    runbook: '/docs/metrics-governance#metric-change-workflow',
+    agentActions: ['none_defined'],
+    lastRefreshedAt: 'TBD',
+    version: 'v0',
+    updatedAt: '2026-03-02',
+  };
+
   return (
     <article className="rounded-lg border border-border bg-surface-elevated overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-start justify-between gap-3">
@@ -91,6 +121,7 @@ export default function ReportDashboardCard({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <MetricHelpButton contract={reportContract} />
           {showOpenLink && (
             <Link href={`/reports/${report.id}`} className="text-xs text-accent hover:underline">
               Open

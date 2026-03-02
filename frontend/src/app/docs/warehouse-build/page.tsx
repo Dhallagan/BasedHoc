@@ -1,29 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import Toolbar from '@/components/Toolbar';
 
 export default function WarehouseBuildDocPage() {
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <Toolbar />
+    <main className="max-w-5xl text-sm text-content-primary leading-6">
+      <section className="bg-surface-elevated border border-border rounded-lg p-5 mb-4">
+        <h1 className="text-lg font-semibold text-content-primary">Warehouse Build Playbook</h1>
+        <p className="text-sm text-content-secondary mt-1">
+          Browserbase-style source system to MotherDuck warehouse and self-serve reporting app.
+        </p>
+      </section>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 text-sm text-content-primary leading-6">
-        <section className="bg-surface-elevated border border-border rounded-lg p-5 mb-4">
-          <h1 className="text-lg font-semibold text-content-primary">Warehouse Build Playbook</h1>
-          <p className="text-sm text-content-secondary mt-1">
-            Browserbase-style source system to MotherDuck warehouse and self-serve reporting app.
+      <section className="bg-surface-elevated border border-border rounded-lg p-6 space-y-6">
+        <div>
+          <h2 className="text-lg font-semibold">System Overview</h2>
+          <p className="mt-2 text-content-secondary">
+            I built this to solve a simple problem: teams move fast, but data trust usually lags behind. The point of this system
+            is to turn messy operational activity into metrics people can actually rely on, without creating a reporting bottleneck.
           </p>
-        </section>
-
-        <section className="bg-surface-elevated border border-border rounded-lg p-6 space-y-6">
-          <div>
-            <h2 className="text-lg font-semibold">System Overview</h2>
-            <p className="mt-2 text-content-secondary">
-              I built this to solve a simple problem: teams move fast, but data trust usually lags behind. The point of this system
-              is to turn messy operational activity into metrics people can actually rely on, without creating a reporting bottleneck.
-            </p>
-          </div>
+        </div>
 
           <div>
             <h3 className="text-base font-semibold">Architecture Diagram</h3>
@@ -41,10 +37,9 @@ Replication Layer
                 v
 MotherDuck Warehouse
   bronze_supabase  -> raw copy
-  silver_stg       -> cleaned staging
-  silver_core      -> canonical entities/facts
-  gold_marts       -> domain aggregates
-  gold_metrics     -> KPI views
+  silver           -> staging + canonical entities/facts
+  growth/product/finance/eng/ops -> domain aggregates and KPIs
+  core             -> shared KPI layer
                 |
                 v
 BasedHoc Self-Serve Portal
@@ -120,19 +115,18 @@ BasedHoc Self-Serve Portal
             </ul>
           </div>
 
-          <div className="pt-1 flex flex-wrap gap-2">
-            <Link href="/docs/data-governance" className="px-3 py-1.5 rounded bg-surface-tertiary text-content-primary text-xs hover:bg-surface-primary">
-              Data Governance Glossary
-            </Link>
-            <Link href="/dashboards" className="px-3 py-1.5 rounded bg-accent text-white text-xs hover:bg-accent-hover">
-              View Dashboards
-            </Link>
-            <Link href="/reports" className="px-3 py-1.5 rounded bg-surface-tertiary text-content-primary text-xs hover:bg-surface-primary">
-              View Reports
-            </Link>
-          </div>
-        </section>
-      </main>
-    </div>
+        <div className="pt-1 flex flex-wrap gap-2">
+          <Link href="/docs/data-governance" className="px-3 py-1.5 rounded bg-surface-tertiary text-content-primary text-xs hover:bg-surface-primary">
+            Data Governance Glossary
+          </Link>
+          <Link href="/dashboards" className="px-3 py-1.5 rounded bg-accent text-white text-xs hover:bg-accent-hover">
+            View Dashboards
+          </Link>
+          <Link href="/reports" className="px-3 py-1.5 rounded bg-surface-tertiary text-content-primary text-xs hover:bg-surface-primary">
+            View Reports
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }

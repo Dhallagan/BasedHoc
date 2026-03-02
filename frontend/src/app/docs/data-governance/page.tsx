@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Toolbar from '@/components/Toolbar';
 
 const SOURCE_TABLES = [
   {
@@ -68,61 +67,56 @@ const WAREHOUSE_LAYERS = [
     examples: 'organizations, users, browser_sessions, invoices',
   },
   {
-    schema: 'silver_stg',
-    role: 'Standardized staging views with cleaned types and normalized fields.',
-    examples: 'stg_organizations, stg_users, stg_browser_sessions',
+    schema: 'silver',
+    role: 'Standardized staging views plus canonical entities and semantic facts.',
+    examples: 'stg_organizations, organizations, sessions, fct_runs, dim_organizations',
   },
   {
-    schema: 'silver_core',
-    role: 'Canonical business entities and semantic facts.',
-    examples: 'core_organizations, core_sessions, fct_browser_run, fct_subscription',
+    schema: 'core',
+    role: 'Cross-domain KPI layer with canonical shared metrics.',
+    examples: 'daily_kpis, metric_spine',
   },
   {
-    schema: 'gold_marts',
-    role: 'Business aggregates by domain and time grain.',
-    examples: 'fct_daily_sessions, fct_monthly_revenue, fct_growth_daily',
-  },
-  {
-    schema: 'gold_metrics',
-    role: 'Reusable KPI views for dashboards and self-serve reporting.',
-    examples: 'v_daily_kpis, v_mrr, v_growth_kpis, v_ops_kpis',
+    schema: 'growth/product/finance/eng/ops',
+    role: 'Domain aggregates and KPI models owned by each function.',
+    examples: 'growth_task_queue, product_kpis, mrr, engineering_daily, ops_kpis',
   },
 ];
 
 const KPI_GLOSSARY = [
   {
     metric: 'Success Rate %',
-    source: 'gold_metrics.v_daily_kpis / gold_marts.fct_*',
+    source: 'core.daily_kpis / domain daily models',
     definition: 'Share of successful sessions out of total sessions.',
     calc: '(successful_sessions / total_sessions) * 100',
   },
   {
     metric: 'Daily Active Organizations (DAU)',
-    source: 'gold_metrics.v_daily_kpis',
+    source: 'core.daily_kpis',
     definition: 'Distinct organizations with at least one session on a date.',
     calc: 'count(distinct organization_id) where session_date = date',
   },
   {
     metric: 'MRR',
-    source: 'gold_metrics.v_mrr',
+    source: 'finance.mrr',
     definition: 'Monthly recurring revenue grouped by plan and total.',
     calc: 'sum(active_subscription_plan_price_usd)',
   },
   {
     metric: 'Activation Rate 7d',
-    source: 'gold_marts.fct_growth_daily / gold_metrics.v_growth_kpis',
+    source: 'growth.growth_daily / growth.growth_kpis',
     definition: 'Percent of newly created orgs that run at least one session within 7 days.',
     calc: '(activated_orgs_7d / new_organizations) * 100',
   },
   {
     metric: 'Collection Rate %',
-    source: 'gold_marts.fct_monthly_revenue',
+    source: 'finance.monthly_revenue',
     definition: 'How much invoiced revenue is realized vs total billed.',
     calc: '(realized_revenue_usd / gross_revenue_usd) * 100',
   },
   {
     metric: 'Proxy Adoption %',
-    source: 'gold_marts.fct_product_daily / gold_metrics.v_product_kpis',
+    source: 'product.product_daily / product.product_kpis',
     definition: 'Share of sessions using proxy infrastructure.',
     calc: '(sessions_with_proxy / total_sessions) * 100',
   },
@@ -149,25 +143,25 @@ interface TableColumns {
 }
 
 function getTableTechnicalSummary(schema: string, table: string): string {
-  if (schema === 'silver_stg') {
+  if (schema === 'silver' && table.startsWith('stg_')) {
     return 'Staging model used to normalize raw source records, standardize data types, and prepare stable inputs for core business models.';
   }
-  if (schema === 'silver_core' && table.startsWith('core_')) {
+  if (schema === 'silver' && (table === 'organizations' || table === 'users' || table === 'sessions')) {
     return 'Canonical core entity table. This layer defines trusted business entities with cleaned keys and reusable relationships.';
   }
-  if (schema === 'silver_core' && table.startsWith('dim_')) {
+  if (schema === 'silver' && table.startsWith('dim_')) {
     return 'Dimension table with descriptive attributes used for filtering, grouping, and consistent business slicing across reports.';
   }
-  if (schema === 'silver_core' && table.startsWith('fct_')) {
+  if (schema === 'silver' && table.startsWith('fct_')) {
     return 'Fact table containing event-like or transactional records at a defined grain used for downstream aggregates and KPI computation.';
   }
-  if (schema === 'gold_marts' && table.startsWith('fct_')) {
+  if (['growth', 'product', 'finance', 'eng', 'ops'].includes(schema)) {
     return 'Business mart aggregate. This model rolls up core facts into analysis-ready measures for a specific domain and time grain.';
   }
-  if (schema === 'gold_metrics' && table.startsWith('v_')) {
+  if (schema === 'core' && table === 'daily_kpis') {
     return 'Governed KPI view that exposes business definitions in a self-serve format for dashboards and operational reporting.';
   }
-  if (schema === 'gold_metrics' && table === 'metric_spine_daily') {
+  if (schema === 'core' && table === 'metric_spine') {
     return 'Daily metric spine used as a canonical base for organization-level KPI analysis and cross-domain metric alignment.';
   }
   return 'Warehouse model containing curated columns used in downstream analytics and metric definitions.';
@@ -190,7 +184,7 @@ export default function DataGovernancePage() {
             column_name,
             data_type
           FROM information_schema.columns
-          WHERE table_schema IN ('silver_stg', 'silver_core', 'gold_marts', 'gold_metrics')
+          WHERE table_schema IN ('silver', 'growth', 'product', 'finance', 'eng', 'ops', 'core')
           ORDER BY table_schema, table_name, ordinal_position
         `;
 
@@ -235,26 +229,23 @@ export default function DataGovernancePage() {
   }, []);
 
   const silverTables = useMemo(
-    () => tableColumns.filter((table) => table.schema === 'silver_stg' || table.schema === 'silver_core'),
+    () => tableColumns.filter((table) => table.schema === 'silver'),
     [tableColumns]
   );
 
-  const goldTables = useMemo(
-    () => tableColumns.filter((table) => table.schema === 'gold_marts' || table.schema === 'gold_metrics'),
+  const analyticsTables = useMemo(
+    () => tableColumns.filter((table) => ['growth', 'product', 'finance', 'eng', 'ops', 'core'].includes(table.schema)),
     [tableColumns]
   );
 
   return (
-    <div className="min-h-screen bg-surface-secondary">
-      <Toolbar />
-
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8 text-sm">
-        <section className="bg-surface-elevated border border-border rounded-lg p-5">
-          <h1 className="text-lg font-semibold text-content-primary">Data Governance Glossary</h1>
-          <p className="text-sm text-content-secondary mt-1">
-            Source schema, warehouse layers, and plain-language metric definitions.
-          </p>
-        </section>
+    <main className="max-w-6xl space-y-8 text-sm">
+      <section className="bg-surface-elevated border border-border rounded-lg p-5">
+        <h1 className="text-lg font-semibold text-content-primary">Data Governance Glossary</h1>
+        <p className="text-sm text-content-secondary mt-1">
+          Source schema, warehouse layers, and plain-language metric definitions.
+        </p>
+      </section>
 
         <section className="bg-surface-elevated border border-border rounded-lg p-5 space-y-3">
           <h2 className="text-base font-semibold text-content-primary">Governance Intent</h2>
@@ -313,9 +304,9 @@ export default function DataGovernancePage() {
         </section>
 
         <section className="bg-surface-elevated border border-border rounded-lg p-5">
-          <h2 className="text-base font-semibold text-content-primary mb-3">3) Silver and Gold Metric Logic</h2>
+          <h2 className="text-base font-semibold text-content-primary mb-3">3) Silver and Analytics Metric Logic</h2>
           <p className="text-content-secondary mb-3">
-            Silver models standardize entities and facts. Gold models aggregate them into KPIs. The formulas below are the shared
+            Silver models standardize entities and facts. Analytics models aggregate them into KPIs. The formulas below are the shared
             metric definitions used in dashboards/reports.
           </p>
           <div className="space-y-3">
@@ -339,7 +330,7 @@ export default function DataGovernancePage() {
         <section className="bg-surface-elevated border border-border rounded-lg p-5">
           <h2 className="text-base font-semibold text-content-primary mb-3">4) Silver Layer Column Dictionary (All Columns)</h2>
           <p className="text-content-secondary mb-3">
-            Full column-level inventory for <code className="font-mono">silver_stg</code> and <code className="font-mono">silver_core</code>.
+            Full column-level inventory for <code className="font-mono">silver</code> (staging + canonical core models).
           </p>
           {columnsLoading && (
             <p className="text-xs text-content-tertiary">Loading silver column metadata...</p>
@@ -383,19 +374,19 @@ export default function DataGovernancePage() {
         </section>
 
         <section className="bg-surface-elevated border border-border rounded-lg p-5">
-          <h2 className="text-base font-semibold text-content-primary mb-3">5) Gold Layer Column Dictionary (All Columns)</h2>
+          <h2 className="text-base font-semibold text-content-primary mb-3">5) Analytics Layer Column Dictionary (All Columns)</h2>
           <p className="text-content-secondary mb-3">
-            Full column-level inventory for <code className="font-mono">gold_marts</code> and <code className="font-mono">gold_metrics</code>.
+            Full column-level inventory for <code className="font-mono">growth/product/finance/eng/ops/core</code>.
           </p>
           {columnsLoading && (
-            <p className="text-xs text-content-tertiary">Loading gold column metadata...</p>
+            <p className="text-xs text-content-tertiary">Loading analytics column metadata...</p>
           )}
           {columnsError && (
             <p className="text-xs text-error bg-error/10 border border-error/20 rounded p-2">{columnsError}</p>
           )}
           {!columnsLoading && !columnsError && (
             <div className="space-y-4">
-              {goldTables.map((table) => (
+              {analyticsTables.map((table) => (
                 <article key={table.fullName} className="border border-border rounded bg-surface-primary p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-sm font-semibold text-content-primary font-mono">{table.fullName}</h3>
@@ -428,16 +419,15 @@ export default function DataGovernancePage() {
           )}
         </section>
 
-        <section className="bg-surface-elevated border border-border rounded-lg p-5">
-          <h2 className="text-base font-semibold text-content-primary mb-2">Governance Notes</h2>
-          <ul className="list-disc pl-5 space-y-1 text-content-secondary">
-            <li>Source tables represent events and transactions, not final business metrics.</li>
-            <li>Only gold layer objects should be used for KPI reporting unless explicitly documented otherwise.</li>
-            <li>Metric definitions should be updated in one place and reflected consistently across all dashboards/reports.</li>
-            <li>When adding new metrics, document owner, grain, refresh cadence, and expected quality checks.</li>
-          </ul>
-        </section>
-      </main>
-    </div>
+      <section className="bg-surface-elevated border border-border rounded-lg p-5">
+        <h2 className="text-base font-semibold text-content-primary mb-2">Governance Notes</h2>
+        <ul className="list-disc pl-5 space-y-1 text-content-secondary">
+          <li>Source tables represent events and transactions, not final business metrics.</li>
+          <li>Only analytics domain/core objects should be used for KPI reporting unless explicitly documented otherwise.</li>
+          <li>Metric definitions should be updated in one place and reflected consistently across all dashboards/reports.</li>
+          <li>When adding new metrics, document owner, grain, refresh cadence, and expected quality checks.</li>
+        </ul>
+      </section>
+    </main>
   );
 }
