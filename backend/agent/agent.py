@@ -25,38 +25,29 @@ Raw tables ingested from Supabase:
 - `api_keys`, `browser_sessions`, `invoices`, `organizations`, `plans`, `projects`
 - `session_events`, `subscriptions`, `usage_records`, `users`
 
-### Silver Layer (Cleaned/Staged) — `silver_core`
-Cleaned dimensions and facts:
-- `dim_org` — Organization dimension
-- `dim_user` — User dimension
-- `core_sessions` — Cleaned browser sessions
-- `fct_browser_run` — Browser run facts
-- `fct_event` — Session event facts
-- `fct_subscription` — Subscription facts
+### Silver Layer (Cleaned/Staged + Core) — `silver`
+Canonical entities and semantic facts:
+- `organizations` — Organization entity
+- `users` — User entity
+- `sessions` — Browser session entity
+- `dim_organizations` — Organization dimension
+- `dim_users` — User dimension
+- `fct_runs` — Browser run facts
+- `fct_events` — Session event facts
+- `fct_subscriptions` — Subscription facts
 
-### Gold Layer (Marts) — `gold_marts`
-Pre-aggregated team fact tables:
-- `fct_daily_sessions` — Daily session counts
-- `fct_monthly_revenue` — Monthly revenue aggregations
-- `fct_engineering_daily` — Engineering team daily metrics
-- `fct_growth_daily` — Growth team daily metrics
-- `fct_ops_daily` — Operations team daily metrics
-- `fct_product_daily` — Product team daily metrics
-
-### Gold Layer (KPI Views) — `gold_metrics`
-Ready-to-query KPI views:
-- `v_daily_kpis` — Daily KPI summary
-- `v_mrr` — Monthly recurring revenue
-- `v_cohort_retention` — Cohort retention analysis
-- `v_active_organizations` — Active org metrics
-- `v_growth_kpis` — Growth team KPIs
-- `v_engineering_kpis` — Engineering team KPIs
-- `v_ops_kpis` — Operations team KPIs
-- `v_product_kpis` — Product team KPIs
+### Analytics Domain Schemas
+Team-facing aggregates and KPI models:
+- `core.daily_kpis`, `core.metric_spine`
+- `finance.mrr`, `finance.monthly_revenue`
+- `growth.growth_daily`, `growth.growth_kpis`, `growth.cohort_retention`, `growth.active_organizations`
+- `eng.engineering_daily`, `eng.engineering_kpis`
+- `ops.ops_daily`, `ops.ops_kpis`
+- `product.product_daily`, `product.product_kpis`
 
 ## SQL Dialect
 - This is **DuckDB** (via MotherDuck), not SQLite or Postgres.
-- Use fully qualified table names: `schema_name.table_name` (e.g. `gold_metrics.v_daily_kpis`).
+- Use fully qualified table names: `schema_name.table_name` (e.g. `core.daily_kpis`).
 - DuckDB supports modern SQL: `DATE_TRUNC`, `INTERVAL`, window functions, CTEs, `QUALIFY`, list/struct types, etc.
 
 ## Tools
@@ -64,9 +55,9 @@ Ready-to-query KPI views:
 - **execute_query**: Run read-only SQL queries (SELECT only)
 
 ## Guidelines
-- **Start with gold_metrics views** for KPI questions — they have pre-computed metrics.
-- Use gold_marts fact tables for aggregated analysis.
-- Drop to silver_core or bronze_supabase only when detailed/raw data is needed.
+- Start with `core`, `finance`, `growth`, `eng`, `ops`, or `product` tables for KPI questions.
+- Use `silver` tables for canonical entity/fact analysis.
+- Drop to `bronze_supabase` only when detailed raw source data is needed.
 - When users ask about data structure, use introspect_schema first.
 - If a query fails, explain why and suggest alternatives.
 - Be concise but thorough in explanations.

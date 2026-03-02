@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import SystemArchitectureDiagram from '@/components/SystemArchitectureDiagram';
 
 export default function WarehouseBuildDocPage() {
   return (
@@ -26,26 +27,9 @@ export default function WarehouseBuildDocPage() {
             <p className="mt-2 text-content-secondary">
               End-to-end flow from source capture to self-serve analytics consumption:
             </p>
-            <pre className="mt-2 p-3 rounded bg-surface-primary border border-border text-xs overflow-auto text-content-secondary">
-{`Supabase-like Operational DB
-  (organizations, users, sessions, billing)
-                |
-                v
-Replication Layer
-  (source-aligned ingestion)
-                |
-                v
-MotherDuck Warehouse
-  bronze_supabase  -> raw copy
-  silver           -> staging + canonical entities/facts
-  growth/product/finance/eng/ops -> domain aggregates and KPIs
-  core             -> shared KPI layer
-                |
-                v
-BasedHoc Self-Serve Portal
-  Dashboards (department KPIs)
-  Reports (run/edit/export SQL)`}
-            </pre>
+            <div className="mt-3">
+              <SystemArchitectureDiagram />
+            </div>
           </div>
 
           <div>

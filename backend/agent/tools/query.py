@@ -37,7 +37,7 @@ def execute_query(sql: str) -> dict:
 
     Use this tool to run custom SQL queries. Only SELECT queries are allowed.
     Use fully qualified table names: schema_name.table_name
-    (e.g. gold_metrics.v_daily_kpis, silver_core.dim_org).
+    (e.g. core.daily_kpis, silver.dim_organizations).
 
     This is DuckDB SQL — supports DATE_TRUNC, INTERVAL, window functions,
     CTEs, QUALIFY, list/struct types, etc.

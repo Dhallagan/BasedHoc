@@ -10,7 +10,8 @@ const DOC_NAV = [
   { href: '/docs/metrics-governance', label: 'Metrics Governance', hint: 'Trust + approvals' },
   { href: '/docs/sources-of-truth', label: 'Sources of Truth', hint: 'Domain ownership' },
   { href: '/docs/instrumentation', label: 'Instrumentation', hint: 'Events + AI readiness' },
-  { href: '/docs/warehouse-build', label: 'Warehouse Build', hint: 'Architecture' },
+  { href: '/about', label: 'About', hint: 'System architecture' },
+  { href: '/docs/warehouse-build', label: 'Warehouse Build', hint: 'Playbook' },
   { href: '/docs/data-governance', label: 'Data Governance', hint: 'Schema + glossary' },
   { href: '/docs/metrics-layer', label: 'Metrics Layer', hint: 'Contracts + ownership' },
 ];

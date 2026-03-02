@@ -61,6 +61,63 @@ export async function getSchema(): Promise<Record<string, unknown>> {
   return response.json();
 }
 
+export interface MonitoringTableStat {
+  table: string;
+  schema: string;
+  freshness_column: string;
+  freshest_at: string | null;
+  row_count: number;
+}
+
+export interface SchemaDriftChange {
+  table: string;
+  added_columns: string[];
+  removed_columns: string[];
+  changed_columns: {
+    column: string;
+    baseline_type: string;
+    current_type: string;
+    baseline_nullable: boolean;
+    current_nullable: boolean;
+  }[];
+}
+
+export interface SchemaDrift {
+  baseline_exists: boolean;
+  baseline_generated_at: string | null;
+  added_tables: string[];
+  removed_tables: string[];
+  changed_tables: SchemaDriftChange[];
+}
+
+export interface MonitoringOverview {
+  generated_at: string;
+  tables: MonitoringTableStat[];
+  by_schema: Record<string, { table_count: number; freshest_at: string | null; stale_tables: number }>;
+  schema_summary: { table_count: number; column_count: number };
+  schema_drift: SchemaDrift;
+}
+
+export async function getMonitoringOverview(): Promise<MonitoringOverview> {
+  const response = await fetch('/api/monitoring/overview');
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.detail || 'Failed to fetch monitoring overview');
+  }
+  const payload = await response.json();
+  return payload.overview as MonitoringOverview;
+}
+
+export async function saveSchemaBaseline(): Promise<void> {
+  const response = await fetch('/api/monitoring/schema-baseline', {
+    method: 'POST',
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.detail || 'Failed to save schema baseline');
+  }
+}
+
 // Streaming event types
 export interface StreamEvent {
   type: 'thinking' | 'text' | 'tool_start' | 'tool_call' | 'tool_result' | 'done' | 'error';

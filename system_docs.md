@@ -69,10 +69,9 @@ BrowserBase/
 | Layer | Schema | Type | Purpose |
 |---|---|---|---|
 | Bronze | `bronze_supabase` | Raw replicated tables | Source-aligned raw copy |
-| Silver Staging | `silver_stg` | Views | Cleaning/casting/normalization |
-| Silver Core | `silver_core` | Tables | Canonical entities and semantic facts |
-| Gold Marts | `gold_marts` | Tables | Domain aggregates |
-| Gold Metrics | `gold_metrics` | Views | KPI views and self-serve metric layer |
+| Silver | `silver` | Views + Tables | Cleaning/casting plus canonical entities and facts |
+| Domain Analytics | `growth`, `product`, `finance`, `eng`, `ops` | Views + Tables | Team/domain aggregates and KPI models |
+| Shared KPI | `core` | Views + Tables | Cross-domain KPI layer and metric spine |
 
 ## 5) Model Inventory
 
@@ -114,35 +113,35 @@ BrowserBase/
 
 ### Silver core models
 
-- `core_organizations`
-- `core_users`
-- `core_sessions`
-- `dim_org`
-- `dim_user`
-- `fct_browser_run`
-- `fct_event`
-- `fct_subscription`
+- `organizations`
+- `users`
+- `sessions`
+- `dim_organizations`
+- `dim_users`
+- `fct_runs`
+- `fct_events`
+- `fct_subscriptions`
 
 ### Gold marts models
 
-- `fct_daily_sessions`
-- `fct_monthly_revenue`
-- `fct_growth_daily`
-- `fct_product_daily`
-- `fct_engineering_daily`
-- `fct_ops_daily`
+- `daily_sessions`
+- `monthly_revenue`
+- `growth_daily`
+- `product_daily`
+- `engineering_daily`
+- `ops_daily`
 
 ### Gold metrics models/views
 
-- `metric_spine_daily`
-- `v_mrr`
-- `v_active_organizations`
-- `v_daily_kpis`
-- `v_cohort_retention`
-- `v_growth_kpis`
-- `v_product_kpis`
-- `v_engineering_kpis`
-- `v_ops_kpis`
+- `metric_spine`
+- `mrr`
+- `active_organizations`
+- `daily_kpis`
+- `cohort_retention`
+- `growth_kpis`
+- `product_kpis`
+- `engineering_kpis`
+- `ops_kpis`
 
 ### Growth workflow and GTM models
 
@@ -323,15 +322,15 @@ Typical checks:
 
 Primary downstream objects for BI:
 
-- `gold_metrics.metric_spine_daily` (canonical org/day metric table)
-- `gold_metrics.v_mrr`
-- `gold_metrics.v_active_organizations`
-- `gold_metrics.v_daily_kpis`
+- `core.metric_spine` (canonical org/day metric table)
+- `core.daily_kpis`
+- `finance.mrr`
+- `growth.active_organizations`
 - domain KPI snapshots:
-  - `gold_metrics.v_growth_kpis`
-  - `gold_metrics.v_product_kpis`
-  - `gold_metrics.v_engineering_kpis`
-  - `gold_metrics.v_ops_kpis`
+  - `growth.growth_kpis`
+  - `product.product_kpis`
+  - `eng.engineering_kpis`
+  - `ops.ops_kpis`
 
 ## 12) Troubleshooting
 

@@ -21,7 +21,13 @@ from models.chat import ChatRequest, ChatResponse
 from agent.agent import run_agent, run_agent_streaming
 from agent.tools.schema import introspect_schema
 from agent.tools.query import execute_query
-from db.database import get_schema_info, test_connection
+from db.database import (
+    get_schema_info,
+    test_connection,
+    get_monitoring_overview,
+    get_schema_drift,
+    save_schema_baseline,
+)
 
 
 @asynccontextmanager
@@ -107,6 +113,38 @@ async def run_custom_query(params: CustomQueryParams):
     try:
         result = execute_query.invoke({"sql": params.sql})
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# MONITORING ENDPOINTS
+# =============================================================================
+
+@app.get("/api/monitoring/overview")
+async def monitoring_overview():
+    """Get pipeline/data freshness and schema drift summary."""
+    try:
+        return {"success": True, "overview": get_monitoring_overview()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/monitoring/schema-drift")
+async def monitoring_schema_drift():
+    """Get schema drift details against stored baseline."""
+    try:
+        return {"success": True, "drift": get_schema_drift()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/monitoring/schema-baseline")
+async def monitoring_save_schema_baseline():
+    """Capture current schema as baseline for drift monitoring."""
+    try:
+        baseline = save_schema_baseline()
+        return {"success": True, "baseline": baseline}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

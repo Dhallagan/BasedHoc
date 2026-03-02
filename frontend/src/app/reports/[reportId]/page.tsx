@@ -18,10 +18,10 @@ export default function ReportPage() {
   const isMartMetricCompare = reportId === 'mart_metric_reconciliation';
 
   const [martSql, setMartSql] = useState(
-    "SELECT * FROM information_schema.tables WHERE table_schema = 'gold_marts' ORDER BY table_name LIMIT 100"
+    "SELECT * FROM information_schema.tables WHERE table_schema IN ('growth', 'product', 'finance', 'eng', 'ops') ORDER BY table_schema, table_name LIMIT 200"
   );
   const [metricSql, setMetricSql] = useState(
-    "SELECT * FROM information_schema.tables WHERE table_schema = 'gold_metrics' ORDER BY table_name LIMIT 100"
+    "SELECT * FROM information_schema.tables WHERE table_schema = 'core' ORDER BY table_name LIMIT 100"
   );
   const [martResult, setMartResult] = useState<ReportResult | null>(null);
   const [tieResult, setTieResult] = useState<ReportResult | null>(null);
