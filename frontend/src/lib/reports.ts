@@ -41,7 +41,7 @@ export const REPORTS: Record<string, ReportDefinition> = {
   schema_introspection: {
     id: 'schema_introspection',
     name: 'Warehouse Schema Explorer',
-    description: 'View modeled warehouse columns from bronze, silver, and gold schemas.',
+    description: 'View modeled warehouse columns from bronze, silver, and analytics schemas.',
     category: 'tools',
     endpoint: '/api/reports/schema',
     parameters: [],
@@ -56,7 +56,7 @@ export const REPORTS: Record<string, ReportDefinition> = {
       {
         ...DEFAULT_SQL_PARAM,
         default:
-          "SELECT * FROM gold_metrics.v_daily_kpis ORDER BY date DESC LIMIT 100",
+          "SELECT * FROM core.daily_kpis ORDER BY date DESC LIMIT 100",
       },
     ],
   },
@@ -80,7 +80,7 @@ export const REPORTS: Record<string, ReportDefinition> = {
   new_users,
   round(total_session_minutes, 1) AS total_session_minutes,
   round(total_gb_transferred, 2) AS total_gb_transferred
-FROM gold_metrics.v_daily_kpis
+FROM core.daily_kpis
 WHERE date >= current_date - interval '29 days'
 ORDER BY date;`,
       },
@@ -100,7 +100,7 @@ ORDER BY date;`,
   total_mrr_usd,
   total_paying_customers,
   round(arpu_usd, 2) AS arpu_usd
-FROM gold_metrics.v_mrr
+FROM finance.mrr
 WHERE as_of_date >= current_date - interval '365 days'
 ORDER BY as_of_date;`,
       },
@@ -117,7 +117,7 @@ ORDER BY as_of_date;`,
         ...DEFAULT_SQL_PARAM,
         default: `WITH latest AS (
   SELECT *
-  FROM gold_metrics.v_mrr
+  FROM finance.mrr
   QUALIFY row_number() OVER (ORDER BY as_of_date DESC) = 1
 )
 SELECT 'starter' AS plan, starter_mrr_usd AS mrr_usd, starter_customers AS customers FROM latest
@@ -144,7 +144,7 @@ ORDER BY mrr_usd DESC;`,
   cohort_size,
   active_orgs,
   round(retention_pct, 2) AS retention_pct
-FROM gold_metrics.v_cohort_retention
+FROM growth.cohort_retention
 WHERE cohort_week >= current_date - interval '180 days'
 ORDER BY cohort_week, week_n;`,
       },
@@ -165,7 +165,7 @@ ORDER BY cohort_week, week_n;`,
     date_trunc('week', organization_created_at)::DATE AS signup_week,
     organization_created_at,
     is_paying_customer
-  FROM silver_core.core_organizations
+  FROM silver.organizations
   WHERE organization_created_at >= current_date - interval '180 days'
 ),
 activation AS (
@@ -173,7 +173,7 @@ activation AS (
     o.organization_id,
     min(s.started_at) AS first_session_at
   FROM orgs o
-  LEFT JOIN silver_core.core_sessions s
+  LEFT JOIN silver.sessions s
     ON s.organization_id = o.organization_id
   GROUP BY 1
 )
@@ -218,9 +218,58 @@ ORDER BY 1 DESC;`,
   lifetime_sessions,
   activity_tier,
   last_session_date
-FROM gold_metrics.v_active_organizations
+FROM growth.active_organizations
 ORDER BY sessions_last_30d DESC
 LIMIT 25;`,
+      },
+    ],
+  },
+  growth_workflow_qa_dashboard: {
+    id: 'growth_workflow_qa_dashboard',
+    name: 'Growth Workflow QA Dashboard',
+    description: 'Signal-to-task-to-action coverage and execution quality.',
+    category: 'growth',
+    endpoint: '/api/reports/query',
+    parameters: [
+      {
+        ...DEFAULT_SQL_PARAM,
+        default: `WITH queue_stats AS (
+  SELECT
+    COUNT(*) AS queued_tasks,
+    COUNT(DISTINCT signal_id) AS queued_signals,
+    AVG(signal_score) AS avg_signal_score
+  FROM growth.growth_task_queue
+),
+action_stats AS (
+  SELECT
+    COUNT(*) AS actions_logged,
+    COUNT(*) FILTER (WHERE status = 'success') AS actions_success,
+    COUNT(*) FILTER (WHERE status = 'failed') AS actions_failed
+  FROM growth.action_log
+),
+coverage AS (
+  SELECT
+    COUNT(*) AS queue_without_action
+  FROM growth.growth_task_queue q
+  LEFT JOIN growth.action_log a
+    ON a.task_id = q.task_id
+   AND a.signal_id = q.signal_id
+  WHERE a.task_id IS NULL
+)
+SELECT
+  current_timestamp AS checked_at,
+  q.queued_tasks,
+  q.queued_signals,
+  round(q.avg_signal_score, 4) AS avg_signal_score,
+  a.actions_logged,
+  a.actions_success,
+  a.actions_failed,
+  c.queue_without_action,
+  round(100.0 * a.actions_success / nullif(a.actions_logged, 0), 2) AS action_success_rate_pct,
+  round(100.0 * (q.queued_tasks - c.queue_without_action) / nullif(q.queued_tasks, 0), 2) AS queue_action_coverage_pct
+FROM queue_stats q
+CROSS JOIN action_stats a
+CROSS JOIN coverage c;`,
       },
     ],
   },
@@ -240,7 +289,7 @@ LIMIT 25;`,
   days_since_last_session,
   current_period_end::DATE AS renewal_date,
   lifetime_sessions
-FROM silver_core.core_organizations
+FROM silver.organizations
 WHERE is_paying_customer = true
   AND days_since_last_session >= 14
 ORDER BY days_since_last_session DESC, current_plan_price_usd DESC
@@ -265,7 +314,7 @@ LIMIT 100;`,
   round(timeout_rate_pct, 2) AS timeout_rate_pct,
   round(errors_per_1k_sessions, 2) AS errors_per_1k_sessions,
   round(p95_duration_seconds, 1) AS p95_duration_seconds
-FROM gold_marts.fct_engineering_daily
+FROM eng.engineering_daily
 WHERE metric_date >= current_date - interval '29 days'
 ORDER BY metric_date;`,
       },
@@ -287,7 +336,7 @@ ORDER BY metric_date;`,
   round(stealth_adoption_pct, 2) AS stealth_adoption_pct,
   round(success_rate_pct, 2) AS success_rate_pct,
   unique_domains_visited
-FROM gold_marts.fct_product_daily
+FROM product.product_daily
 WHERE metric_date >= current_date - interval '90 days'
 ORDER BY metric_date;`,
       },
@@ -310,10 +359,36 @@ ORDER BY metric_date;`,
   round(avg(collection_rate_pct), 2) AS avg_collection_rate_pct,
   sum(paid_invoice_count) AS paid_invoices,
   sum(open_invoice_count) AS open_invoices
-FROM gold_marts.fct_monthly_revenue
+FROM finance.monthly_revenue
 WHERE revenue_month >= date_trunc('month', current_date) - interval '12 months'
 GROUP BY 1
 ORDER BY 1;`,
+      },
+    ],
+  },
+  finance_budget_vs_actual_6m: {
+    id: 'finance_budget_vs_actual_6m',
+    name: 'Budget vs Actual Spend (6m)',
+    description: 'Monthly budget allocation, actual spend, variance, and utilization.',
+    category: 'revenue',
+    endpoint: '/api/reports/query',
+    parameters: [
+      {
+        ...DEFAULT_SQL_PARAM,
+        default: `SELECT
+  budget_month,
+  round(sum(budget_allocated_usd), 2) AS budget_allocated_usd,
+  round(sum(actual_spend_usd), 2) AS actual_spend_usd,
+  round(sum(budget_variance_usd), 2) AS budget_variance_usd,
+  round(
+    100.0 * sum(actual_spend_usd) / nullif(sum(budget_allocated_usd), 0),
+    2
+  ) AS budget_utilization_ratio,
+  round(sum(ap_open_usd), 2) AS ap_open_usd
+FROM finance.finance_budget_vs_actual_monthly
+WHERE budget_month >= date_trunc('month', current_date) - interval '6 months'
+GROUP BY 1
+ORDER BY 1 DESC;`,
       },
     ],
   },
@@ -336,7 +411,7 @@ ORDER BY 1;`,
   round(avg_stealth_session_pct_30d, 2) AS avg_stealth_session_pct_30d,
   api_keys_created_30d,
   active_api_keys_created_30d
-FROM gold_metrics.v_ops_kpis
+FROM ops.ops_kpis
 ORDER BY as_of_date DESC
 LIMIT 90;`,
       },
