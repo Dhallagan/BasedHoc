@@ -41,8 +41,12 @@ BrowserBase/
     ├── models/
     │   ├── staging/
     │   ├── core/
-    │   ├── marts/
-    │   └── metrics/
+    │   ├── growth/
+    │   ├── product/
+    │   ├── finance/
+    │   ├── eng/
+    │   ├── ops/
+    │   └── core_metrics/
     └── tests/
 ```
 
@@ -53,6 +57,7 @@ BrowserBase/
 - Identity/account: `organizations`, `users`, `organization_members`
 - Product usage: `projects`, `api_keys`, `browser_sessions`, `session_events`
 - Billing: `plans`, `subscriptions`, `usage_records`, `invoices`
+- GTM/CRM: `gtm_accounts`, `gtm_contacts`, `gtm_leads`, `gtm_campaigns`, `gtm_lead_touches`, `gtm_opportunities`, `gtm_activities`
 
 ### Schema files
 
@@ -84,6 +89,13 @@ BrowserBase/
 - `session_events`
 - `usage_records`
 - `invoices`
+- `gtm_accounts`
+- `gtm_contacts`
+- `gtm_leads`
+- `gtm_campaigns`
+- `gtm_lead_touches`
+- `gtm_opportunities`
+- `gtm_activities`
 
 ### Silver staging models
 
@@ -91,7 +103,14 @@ BrowserBase/
 - `stg_users`
 - `stg_plans`
 - `stg_subscriptions`
-- `stg_browser_sessions`
+- `stg_sessions`
+- `stg_gtm_accounts`
+- `stg_gtm_contacts`
+- `stg_gtm_leads`
+- `stg_gtm_campaigns`
+- `stg_gtm_lead_touches`
+- `stg_gtm_opportunities`
+- `stg_gtm_activities`
 
 ### Silver core models
 
@@ -124,6 +143,15 @@ BrowserBase/
 - `v_product_kpis`
 - `v_engineering_kpis`
 - `v_ops_kpis`
+
+### Growth workflow and GTM models
+
+- `gtm_funnel_daily`
+- `gtm_pipeline_snapshot`
+- `signal_thresholds`
+- `signal_trial_conversion_risk_daily`
+- `growth_task_queue`
+- `action_log`
 
 ## 6) Environment Variables
 
